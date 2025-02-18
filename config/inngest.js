@@ -5,75 +5,64 @@ import User from "@/models/User";
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "quickcart-next" });
 
-// Inngest function to save user data to the database
+// User creation function
 export const syncUserCreation = inngest.createFunction(
-    {
-        id: "sync-user-from-clerk"
-    },
-    {
-        event: "clerk/user.created"
-    },
+    { id: "quickcart-next-sync-user-creation" }, // Unique function ID
+    { event: "clerk/user.created" },
     async ({ event }) => {
         try {
-            const { id, first_name, last_name, email_addresses, image_url } = event.data;
+            await connectDB();
+            const { id, first_name = "", last_name = "", email_addresses, image_url } = event.data;
 
             const userData = {
                 _id: id,
-                email: email_addresses[0]?.email_address, 
-                name: `${first_name} ${last_name}`,
-                ImageUrl: image_url
+                email: email_addresses?.[0]?.email_address || "",
+                name: `${first_name} ${last_name}`.trim(),
+                imageUrl: image_url || ""
             };
 
-            await connectDB();
             await User.create(userData);
         } catch (error) {
             console.error("Error syncing user creation:", error);
+            throw error;
         }
     }
 );
 
-// Inngest function to update user data in the database
+// User update function
 export const syncUserUpdation = inngest.createFunction(
-    {
-        id: "update-user-from-clerk"
-    },
-    {
-        event: "clerk/user.updated"
-    },
+    { id: "quickcart-next-sync-user-updation" }, // Unique function ID
+    { event: "clerk/user.updated" },
     async ({ event }) => {
         try {
-            const { id, first_name, last_name, email_addresses, image_url } = event.data;
+            await connectDB();
+            const { id, first_name = "", last_name = "", email_addresses, image_url } = event.data;
 
             const userData = {
-                email: email_addresses[0]?.email_address,
-                name: `${first_name} ${last_name}`,
-                ImageUrl: image_url
+                email: email_addresses?.[0]?.email_address || "",
+                name: `${first_name} ${last_name}`.trim(),
+                imageUrl: image_url || ""
             };
 
-            await connectDB();
-            await User.findByIdAndUpdate(id, userData);
+            await User.findByIdAndUpdate(id, userData, { new: true, runValidators: true });
         } catch (error) {
             console.error("Error syncing user update:", error);
+            throw error;
         }
     }
 );
 
-// Inngest function to delete user data from the database
+// User deletion function
 export const syncUserDeletion = inngest.createFunction(
-    {
-        id: "delete-user-from-clerk"
-    },
-    {
-        event: "clerk/user.deleted"
-    },
+    { id: "quickcart-next-sync-user-deletion" }, // Unique function ID
+    { event: "clerk/user.deleted" },
     async ({ event }) => {
         try {
-            const { id } = event.data;
-
             await connectDB();
-            await User.findByIdAndDelete(id);
+            await User.findByIdAndDelete(event.data.id);
         } catch (error) {
             console.error("Error syncing user deletion:", error);
+            throw error;
         }
     }
 );
