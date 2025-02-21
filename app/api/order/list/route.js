@@ -1,7 +1,8 @@
 import connectDB from "@/config/db";
-import User from "@/models/User";
+import Address from "@/models/Address";
+import Order from "@/models/Order";
+import Product from "@/models/Product";
 import { getAuth } from "@clerk/nextjs/server";
-import { connection } from "mongoose";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
@@ -9,12 +10,15 @@ export async function GET(request) {
     const { userId } = getAuth(request);
 
     await connectDB();
-    const user = await User.findById(userId);
 
-    if (!user) {
-      return NextResponse.json({ success: false, message: "user not found" });
-    }
-    return NextResponse.json({ success: true, user });
+    Address.length;
+    Product.length;
+
+    const orders = await Order.find({ userId }).populate(
+      "address items.product"
+    );
+
+    return NextResponse.json({ success: true, orders });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message });
   }

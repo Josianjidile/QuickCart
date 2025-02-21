@@ -1,10 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server"; 
-import authSeller from "@/lib/authSeller"; 
+import { getAuth } from "@clerk/nextjs/server";
+import authSeller from "@/lib/authSeller";
 import connectDB from "@/config/db";
-import Product from  "@/models/Product"; 
-
+import Product from "@/models/Product";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -20,7 +19,10 @@ export async function POST(request) {
     const isSeller = await authSeller(userId);
 
     if (!isSeller) {
-      return NextResponse.json({ success: false, message: "Not authorized" }, { status: 403 });
+      return NextResponse.json(
+        { success: false, message: "Not authorized" },
+        { status: 403 }
+      );
     }
 
     // Parse form data
@@ -33,7 +35,10 @@ export async function POST(request) {
     const files = formData.getAll("images");
 
     if (!files || files.length === 0) {
-      return NextResponse.json({ success: false, message: "No file uploaded" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "No file uploaded" },
+        { status: 400 }
+      );
     }
 
     // Upload images to Cloudinary
@@ -67,8 +72,6 @@ export async function POST(request) {
     // Connect to Database
     await connectDB();
 
-    
-
     // Create new Product
     const newProduct = await Product.create({
       userId,
@@ -88,6 +91,9 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("Error:", error);
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
