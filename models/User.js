@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     _id: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -16,18 +16,17 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
     imageUrl: {
-      type: String, 
+      type: String,
       required: true,
     },
-    cartItems:{
-        type:Object,
-        default:{}
-    }
+    cartItems: {
+      type: Object,
+      default: {},
+    },
   },
-  {minimize: false}, 
-  { timestamps: true }
+  { minimize: false, timestamps: true } // ✅ Corrected placement of timestamps
 );
 
-const User = mongoose.model.user || mongoose.model("user", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema); // ✅ Prevent model overwrite
 
 export default User;
