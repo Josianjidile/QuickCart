@@ -7,7 +7,12 @@ export const inngest = new Inngest({ id: "quickcart-next" });
 
 // User creation function
 export const syncUserCreation = inngest.createFunction(
-    { id: "quickcart-next-sync-user-creation" }, // Unique function ID
+    { id: "quickcart-next-sync-user-creation", 
+        batchEvents:{
+            maxSize:5,
+            timeout:'5s'
+        }
+    }, // Unique function ID
     { event: "clerk/user.created" },
     async ({ event }) => {
         try {
