@@ -33,9 +33,51 @@ const OrderSummary = () => {
     setIsDropdownOpen(false);
   };
 
+
+
   const createOrder = async () => {
-    // Your order creation logic here
+    try {
+      if (!selectedAddress) {
+        return toast.error("Please select an address.");
+      }
+  
+   
+      
+      // Convert cart items object into an array of products with quantities
+      let cartItemsArray = Object.keys(cartItems).map((key) => ({
+        product: key,
+        quantity: cartItems[key] // Ensure quantity is included
+      }));
+      cartItemsArray=cartItemsArray.filter(item=> item.quantity> 0  )
+  
+      if (cartItemsArray.length === 0) {
+        return toast.error("Your cart is empty.");
+      }
+      const token = await getToken();
+
+      const { data } = await axios.post("/api/order/create",
+        {address: selectedAddress._id,items: cartItemsArray}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    
+  
+    
+  
+      if (data.success) {
+        toast.success("Order placed successfully!");
+        setCartItems({}); // Clear cart after placing order
+        router.push("/order-placed");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast.error("Failed to place order. Please try again.");
+    }
   };
+  
+
+
 
   useEffect(() => {
     if (user) fetchUserAddresses();

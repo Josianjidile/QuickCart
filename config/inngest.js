@@ -1,6 +1,7 @@
 import { Inngest } from "inngest";
 import connectDB from "./db";
 import User from "@/models/User";
+import Order from "@/models/Order";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "quickcart-next" });
@@ -76,7 +77,12 @@ export const syncUserDeletion = inngest.createFunction(
 // inngest function to create users order in database
 
 export const syncOrderCreation = inngest.createFunction(
-    { id: "quickcart-next-sync-order-creation" }, // Unique function ID
+    { id: "quickcart-next-sync-order-creation",
+        batchEvents:{
+            maxSize:5,
+            timeout:'5s'
+        }
+     }, // Unique function ID
     { event: "order/created" }, // Event triggered when an order is created
     async ({ event }) => {
       try {
@@ -86,17 +92,19 @@ export const syncOrderCreation = inngest.createFunction(
         const { userId, items, amount, address, status = "order placed", date = Date.now() } = event.data;
   
         // Prepare the order data to be saved in the database
-        const orderData = {
+        const orders = {
           userId,  // Assuming userId is a string or ObjectId
           items,  // The items array would be passed from the event
           amount,  // The total amount of the order
           address,  // The address associated with the order
-          status,  // The order status (default is "order placed")
+        //   status,  // The order status (default is "order placed")
           date,  // The date the order was placed
         };
   
         // Create and save the order to the database
-        await Order.create(orderData);
+        await Order.insertMany(orders);
+
+        return{success:true,processed: orders.length}
         
       } catch (error) {
         console.error("Error syncing order creation:", error);
